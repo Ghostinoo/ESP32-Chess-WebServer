@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Chess } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
+import { fetchToESP } from './fetcher';
 
 const Board: React.FC<{
   setWinner: (w: string) => void;
@@ -34,6 +35,9 @@ const Board: React.FC<{
   };
 
   const reset = () => {
+    fetchToESP('boh').then(r => {
+      console.log(r);
+    });
     setWinner('Partita in corso...');
     game.reset();
     setPos(game.fen());
