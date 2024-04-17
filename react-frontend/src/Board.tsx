@@ -2,6 +2,7 @@ import React, { useRef, useState } from 'react';
 import { Chess } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
 import { fetchToESP } from './fetcher';
+import Cookies from 'js-cookie';
 
 const Board: React.FC<{
   setWinner: (w: string) => void;
@@ -38,7 +39,8 @@ const Board: React.FC<{
     fetchToESP('boh').then(r => {
       console.log(r);
     });
-    setWinner('Partita in corso...');
+    const c = Cookies.get("pinco");
+    setWinner('Partita in corso... '+(c ?? 'indefinito'));
     game.reset();
     setPos(game.fen());
   };
