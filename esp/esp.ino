@@ -4,8 +4,8 @@
 #include <ESPAsyncWebServer.h>
 
 // Credenziali di rete
-const char* ssid = "Drudi's Wi-Fi";
-const char* pwd = "housedrudi72";
+const char* ssid = "SSID";
+const char* pwd = "PASSWORD";
 
 // pagina da renderizzare alla richiesta get
 // !!! è normale che venga visualizzata bianca, la tokenizzazione non funziona su stringhe lunghe. !!!
