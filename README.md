@@ -23,3 +23,4 @@ Ogni client può mandare un messaggio al server (non direttamente ad altri clien
 Il server può fare un `broadcast`, utilizzando il metodo `ws.textAll` (o meglio `ws.printfAll`) per raggiungere tutti i client collegati.
 Altrimenti, è possibile indirizzare un messaggio ad uno specifico client, specificando l'ID dello stesso.
 
+Ogni comunicazione in WebSocket ha un `OPCODE` che definisce la tipologia del contenuto. Nel nostro caso tutti i messaggi che non sono di tipo `TEXT` verranno ignorati, siccome i dati trasmessi tra i dispositivi sono delle `FEN Strings` (che descrivono la scacchiera).
