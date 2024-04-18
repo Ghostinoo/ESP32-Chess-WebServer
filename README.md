@@ -6,7 +6,7 @@ TODO
 > [!NOTE]
 > La pagina servita NON è statica, è frutto di una richiesta http all'indirizzo `0.0.0.0/`
 
-Per visualizzare (e quindi renderizzare sul proprio client) il codice html contenuto nella costante `htmlPage`, è necessario collegarsi all'indirizzo della ESP (stampato sul monitor seriale una volta connessi al WiFi), con un URI vuoto: `ip.della.esp/`
+Per visualizzare (e quindi renderizzare sul proprio client) il codice html contenuto nella costante `htmlPage`, è necessario collegarsi all'indirizzo della ESP (stampato sul monitor seriale una volta connessi al WiFi), con un URI vuoto: `http://ip.della.esp/`
 
 La richiesta `GET` riceverà appunto una risposta con status `200` (OK) e corpo contenente il contenuto della sopracitata costante.
 
