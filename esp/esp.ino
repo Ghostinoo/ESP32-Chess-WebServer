@@ -19,6 +19,11 @@ AsyncWebSocket ws("/ws");
 unsigned long lastTime = 0;
 unsigned long timerDelay = 5000;
 
+// Array che contiene gli id dei giocatori, definizione degli index.
+#define BLACK 0
+#define WHITE 1
+int16_t players[2] = {-1,-1};
+
 // Inizializzazione del WiFi
 void initWiFi() {
   WiFi.mode(WIFI_STA); // Station Mode (classica)
@@ -28,15 +33,22 @@ void initWiFi() {
     Serial.print('.');
     delay(500);
   }
-  Serial.printf("\n%s",WiFi.localIP().toString().c_str()); // printo l'ip locale
+  Serial.printf("\n%s\n",WiFi.localIP().toString().c_str()); // printo l'ip locale
 }
 
-void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
-  AwsFrameInfo * info = (AwsFrameInfo*)arg;
+#define getOpponent(id) ((id == players[WHITE]) ? players[BLACK] : players[WHITE])
+void handleWebSocketMessage(uint32_t clientId, void *arg, uint8_t *data, size_t len) {
+  AwsFrameInfo * info = (AwsFrameInfo*)arg; // faccio un cast dell'argomento in un AwsFrameInfo
   if (info->final && info->index == 0 && info->len == len) { // se il buffer del messaggio è pronto
     if (info->opcode == WS_TEXT) { // se l'opcode del messaggio è TEXT
-      data[len] = 0; // aggiungo il terminatore di stringa
-      Serial.println((char*)data); // printo la stringa
+      data[len] = 0; // aggiungo il terminatore di stringa in fondo al buffer
+      Serial.printf("Client #%u ha inviato: %s\n", clientId, (char*)data); // printo il mesaggio
+      String FENString = String((char*)data); // converto il buffer in una stringa
+      ws.text(getOpponent(clientId), FENString); // invio la stringa al client avversario
+      /*
+        GESTIONE DELLA STRINGA FEN -> Invio all'S7
+      */
+
     }
   }
 }
@@ -44,15 +56,45 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
 // Gestione degli eventi del server WebSocket
 void onEvent(AsyncWebSocket *server, AsyncWebSocketClient *client, AwsEventType type, void *arg, uint8_t *data, size_t len) {
   switch(type) {
+    //////////////////////////////////////////////////////
     case WS_EVT_CONNECT: // Connessione di un client
-      Serial.printf("Client WebSocket #%u connesso da %s\n", client->id(), client->remoteIP().toString().c_str());
+      Serial.printf("Client WebSocket #%u in connessione da %s... ", client->id(), client->remoteIP().toString().c_str());
+
+      // -- Memorizzazione dell'ID del client, assegnazione del ruolo
+      if (players[WHITE] >= 0 && players[BLACK] >= 0) { // Controllo che non ci siano già due dispositivi in gioco
+        client->close(1000, "Sono già collegati due dispositivi.");
+        Serial.printf("Rifiutato (troppi clients).\n");
+        return;
+      }
+
+      if (players[WHITE] >= 0) { // se il ruolo WHITE è già assegnato
+        players[BLACK] = (int16_t)client->id(); // assegno il ruolo BLACK all'id del client
+        client->text("BLACK"); // invio al client il ruolo assegnato
+      }
+      else { // altrimenti
+        players[WHITE] = (int16_t)client->id();
+        client->text("WHITE");
+      }
+      // --
+
+      Serial.printf("Connesso.\n");
       break;
+    //////////////////////////////////////////////////////
     case WS_EVT_DISCONNECT: // Disconnessione di un client
-      Serial.printf("Client WebSocket #%u disconnesso.\n", client->id());
+      Serial.printf("Client #%u in disconnessione... ", client->id());
+
+      // -- Rimozione del ruolo
+      if (players[WHITE] == client->id()) players[WHITE] = -1;
+      if (players[BLACK] == client->id()) players[BLACK] = -1;
+      // --
+
+      Serial.printf("Disconnesso.\n");
       break;
+    //////////////////////////////////////////////////////
     case WS_EVT_DATA: // Dati in arrivo
-      handleWebSocketMessage(arg, data, len);
+      handleWebSocketMessage(client->id(), arg, data, len);
       break;
+    //////////////////////////////////////////////////////
     case WS_EVT_PONG: // Evento di Pong
     case WS_EVT_ERROR: // Evento di errore
       break;
@@ -79,9 +121,5 @@ void setup() {
 }
 
 void loop() {
-  if ((millis() - lastTime) > timerDelay) {
-    ws.textAll("check"); // esempio, ogni timerDelay millisecondi manda un check
-    lastTime = millis();
-  }
   ws.cleanupClients(2); // Limito i Clients a 2
 }
