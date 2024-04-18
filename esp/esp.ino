@@ -1,3 +1,9 @@
+/*
+ *
+ * GUARDARE IL README.md PER LA DOCUMENTAZIONE
+ *
+ */
+
 #include <Arduino.h>
 #include <WiFi.h>
 #include <AsyncTCP.h>
