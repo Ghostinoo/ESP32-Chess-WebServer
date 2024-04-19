@@ -44,17 +44,18 @@ void initWiFi() {
 
 #define getOpponent(id) ((id == players[WHITE]) ? players[BLACK] : players[WHITE])
 void handleWebSocketMessage(uint32_t clientId, void *arg, uint8_t *data, size_t len) {
-  AwsFrameInfo * info = (AwsFrameInfo*)arg; // faccio un cast dell'argomento in un AwsFrameInfo
-  if (info->final && info->index == 0 && info->len == len) { // se il buffer del messaggio è pronto
-    if (info->opcode == WS_TEXT) { // se l'opcode del messaggio è TEXT
-      data[len] = 0; // aggiungo il terminatore di stringa in fondo al buffer
-      Serial.printf("Client #%u ha inviato: %s\n", clientId, (char*)data); // printo il mesaggio
-      String FENString = String((char*)data); // converto il buffer in una stringa
-      ws.text(getOpponent(clientId), FENString); // invio la stringa al client avversario
-      /*
-        GESTIONE DELLA STRINGA FEN -> Invio all'S7
-      */
 
+  AwsFrameInfo * info = (AwsFrameInfo*)arg; // faccio un cast dell'argomento in un AwsFrameInfo
+
+  if (info->final && info->index == 0 && info->len == len) { // se il buffer del messaggio è pronto
+
+    if (info->opcode == WS_TEXT) { // se l'opcode del messaggio è TEXT
+
+      data[len] = 0; // aggiungo il terminatore di stringa in fondo al buffer
+      Serial.printf("Client #%u ha inviato: %s\n", clientId, (char*)data); // printo il messaggio
+      String msg = String((char*)data); // converto il buffer in una stringa
+
+      if (msg.startsWith("MOVE")) ws.text(getOpponent(clientId), msg);
     }
   }
 }

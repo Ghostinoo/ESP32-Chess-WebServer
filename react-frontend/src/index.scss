@@ -16,6 +16,7 @@ h1 {
   color: #FFF;
   z-index: 2;
   text-shadow: 0 0 2.5vh #000;
+  text-align: center;
 }
 
 body {
@@ -46,8 +47,10 @@ button {
   align-items: center;
   flex-direction: column;
 }
+
 .board-wrapper {
-  height: min(80vh, 80vw);
-  aspect-ratio: 1;
-  box-shadow: 0 0 5vh .5vh #000A;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
 }
