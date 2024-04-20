@@ -13,18 +13,20 @@ const Board: React.FC<{
   role: "WHITE" | "BLACK" | null;
   isThereOpponent: boolean;
   game: Chess;
-  setGame: (game: Chess) => void;
+  setGame: (game: Chess, payload?: {from: Square, to: Square}) => void;
+  canPlay: boolean;
 }> = ({
   role,
   isThereOpponent,
   game,
-  setGame
+  setGame,
+  canPlay,
 }) => {
   const [moveFrom, setMoveFrom] = useState<Square | "">("");
   const [moveTo, setMoveTo] = useState<Square | null>(null);
   const [showPromotionDialog, setShowPromotionDialog] = useState(false);
   const [rightClickedSquares, setRightClickedSquares] = useState({});
-  const [moveSquares, setMoveSquares] = useState({});
+  // const [moveSquares, setMoveSquares] = useState({});
   const [optionSquares, setOptionSquares] = useState({});
   const [boardWidth, setBoardWidth] = useState(computeWidth());
 
@@ -60,7 +62,7 @@ const Board: React.FC<{
   }
 
   function onSquareClick(square: Square) {
-    if (!isMyTurn || !isThereOpponent) return;
+    if (!isMyTurn || !isThereOpponent || !canPlay) return;
     setRightClickedSquares({});
 
     // from square
@@ -119,7 +121,11 @@ const Board: React.FC<{
         return;
       }
 
-      setGame(new Chess(game.fen()));
+      if (move !== null)
+        setGame(new Chess(game.fen()), {
+          from: move.from,
+          to: move.to,
+        });
 
       // setTimeout(makeRandomMove, 300);
       setMoveFrom("");
@@ -165,15 +171,16 @@ const Board: React.FC<{
           boxShadow: "0 0 2vw rgba(0, 0, 0, .7)",
         }}
         customSquareStyles={{
-          ...moveSquares,
+          // ...moveSquares,
           ...optionSquares,
           ...rightClickedSquares,
         }}
         promotionToSquare={moveTo}
         showPromotionDialog={showPromotionDialog}
       />
-      <button
+      {/* <button
         onClick={() => {
+          if (!isThereOpponent) return;
           game.reset();
           setGame(new Chess(game.fen()));
           setMoveSquares({});
@@ -182,7 +189,7 @@ const Board: React.FC<{
         }}
       >
         Reset
-      </button>
+      </button> */}
     </div>
   );
 };
