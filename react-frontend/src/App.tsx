@@ -1,31 +1,34 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Board from './Board';
 import { Chess, Square } from 'chess.js';
 
+interface MovePayload {
+  from: Square;
+  to: Square;
+}
+
 const App: React.FC = () => {
-  const [message, _setMessage] = useState('Aspettando un avversario...');
-  const [role, setRole] = useState<'WHITE' | 'BLACK' | null>(null);
+  const socketRef = useRef<WebSocket | null>(null);
+  const [message, setMessage] = useState('Aspettando un avversario...');
+  const [role, setRole] = useState<'WHITE' | 'BLACK'>('WHITE');
   const [isThereOpponent, setIsThereOpponent] = useState(false);
   const [game, setGame] = useState(new Chess());
   const [canPlay, setCanPlay] = useState(false);
 
-  const setMessage = (msg: string, bp: boolean = false) => { if (canPlay || bp) _setMessage(msg); };
-
-  const updateGame = (newGame: Chess, payload?: {from: Square, to: Square}) => {
+  const updateGame = (newGame: Chess, payload?: MovePayload, isPromotion: boolean = false) => {
     setGame(newGame);
     const isMyTurn = (newGame.turn() === 'w' && role === 'WHITE' || newGame.turn() === 'b' && role === 'BLACK');
+    if (payload && socketRef.current)
+      if (socketRef.current.OPEN) {
+        socketRef.current.send(`${isPromotion ? 'PRMT' : 'MOVE'}_${payload.from}_${payload.to}_${newGame.fen()}`);
+      }
     if (newGame.isGameOver()) {
-      if (newGame.isCheck() || game.inCheck())
-        setMessage(!isMyTurn ? "L'hai messo in scacco!" : "Sei sotto scacco!");
-      else if (newGame.isCheckmate())
+      socketRef.current?.close();
+      if (newGame.isCheckmate())
         setMessage(!isMyTurn ? "Scacco matto! Hai vinto!" : "Hai perso :(");
       else if (newGame.isStalemate() || game.isDraw())
         setMessage('Sembra proprio un pareggio...');
       else setMessage('Partita finita!');
-      }
-    else setMessage('Sposto la pedina...');
-    if (payload) {
-
     }
   };
 
@@ -36,9 +39,11 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const socket = new WebSocket('ws://192.168.1.202/ws');
-    socket.onclose = e => console.log(`Connessione chiusa: ${e.reason}`);
-    socket.onopen = () => console.log(`Connesso a ${socket.url}`);
+    socketRef.current = socket;
+    socket.onclose = e => console.warn(`Connessione chiusa: ${e.reason}`);
+    socket.onopen = () => console.warn(`Connesso a ${socket.url}`);
     socket.onmessage = (e: MessageEvent) => {
+      if (!(typeof e.data === 'string')) return;
       console.log(e.data);
       switch (e.data) {
         case 'WHITE':
@@ -48,26 +53,18 @@ const App: React.FC = () => {
         case 'FREEZE':
         case 'PLAY':
           setCanPlay(e.data === 'PLAY');
-          setMessage(e.data === 'FREEZE'
-            ? 'Sposto la pedina...'
-            : !(game.turn() === 'w' && role === 'WHITE' || game.turn() === 'b' && role === 'BLACK')
-              ? 'È il tuo turno!'
-              : 'È il turno dell\'avversario!'
-            , true
-          );
           break;
         case 'OPP_DISCONNECTED':
           setIsThereOpponent(false);
-          setMessage('Avversario disconnesso :(');
           break;
         case 'OPP_FOUND':
           setIsThereOpponent(true);
           game.reset();
           updateGame(new Chess(game.fen()));
-          setMessage('Sposto la pedina...');
           break;
         default:
-          onUpdateBoard(e.data);
+          if (e.data.startsWith('MSG-')) setMessage(e.data.slice(4));
+          else onUpdateBoard(e.data);
       }
     };
     return () => socket.close();

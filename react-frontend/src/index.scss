@@ -15,7 +15,7 @@ h1 {
   line-height: .7;
   color: #FFF;
   z-index: 2;
-  text-shadow: 0 0 2.5vh #000;
+  filter: drop-shadow(0 0 1vh #000);
   text-align: center;
 }
 

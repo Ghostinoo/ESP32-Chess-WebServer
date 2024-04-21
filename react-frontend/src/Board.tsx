@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Chess, Square } from "chess.js";
 import { Chessboard } from "react-chessboard";
-import { PromotionPieceOption } from "react-chessboard/dist/chessboard/types";
 import { useEventListener } from "usehooks-ts";
 
 // https://react-chessboard.vercel.app/?path=/docs/example-chessboard--click-to-move
@@ -13,7 +12,7 @@ const Board: React.FC<{
   role: "WHITE" | "BLACK" | null;
   isThereOpponent: boolean;
   game: Chess;
-  setGame: (game: Chess, payload?: {from: Square, to: Square}) => void;
+  setGame: (game: Chess, payload?: {from: Square, to: Square}, promotion?: boolean) => void;
   canPlay: boolean;
 }> = ({
   role,
@@ -24,9 +23,7 @@ const Board: React.FC<{
 }) => {
   const [moveFrom, setMoveFrom] = useState<Square | "">("");
   const [moveTo, setMoveTo] = useState<Square | null>(null);
-  const [showPromotionDialog, setShowPromotionDialog] = useState(false);
   const [rightClickedSquares, setRightClickedSquares] = useState({});
-  // const [moveSquares, setMoveSquares] = useState({});
   const [optionSquares, setOptionSquares] = useState({});
   const [boardWidth, setBoardWidth] = useState(computeWidth());
 
@@ -93,6 +90,7 @@ const Board: React.FC<{
 
       // valid move
       setMoveTo(square);
+      let prom = false;
 
       // if promotion move
       if (
@@ -103,8 +101,7 @@ const Board: React.FC<{
           foundMove.piece === "p" &&
           square[1] === "1")
       ) {
-        setShowPromotionDialog(true);
-        return;
+        prom = true;
       }
 
       // is normal move
@@ -125,33 +122,13 @@ const Board: React.FC<{
         setGame(new Chess(game.fen()), {
           from: move.from,
           to: move.to,
-        });
+        }, prom);
 
-      // setTimeout(makeRandomMove, 300);
       setMoveFrom("");
       setMoveTo(null);
       setOptionSquares({});
       return;
     }
-  }
-
-  function onPromotionPieceSelect(piece?: PromotionPieceOption) {
-    // if no piece passed then user has cancelled dialog, don't make move and reset
-    if (piece && moveTo) {
-      game.move({
-        from: moveFrom,
-        to: moveTo,
-        promotion: piece[1].toLowerCase() ?? "q",
-      });
-      setGame(new Chess(game.fen()));
-      // setTimeout(makeRandomMove, 300);
-    }
-
-    setMoveFrom("");
-    setMoveTo(null);
-    setShowPromotionDialog(false);
-    setOptionSquares({});
-    return true;
   }
 
   useEventListener("resize", () => setBoardWidth(computeWidth()));
@@ -163,7 +140,6 @@ const Board: React.FC<{
         arePiecesDraggable={false}
         position={game.fen()}
         onSquareClick={onSquareClick}
-        onPromotionPieceSelect={onPromotionPieceSelect}
         boardWidth={boardWidth}
         boardOrientation={role === "WHITE" ? "white" : "black"}
         customBoardStyle={{
@@ -176,20 +152,8 @@ const Board: React.FC<{
           ...rightClickedSquares,
         }}
         promotionToSquare={moveTo}
-        showPromotionDialog={showPromotionDialog}
+        showPromotionDialog={false}
       />
-      {/* <button
-        onClick={() => {
-          if (!isThereOpponent) return;
-          game.reset();
-          setGame(new Chess(game.fen()));
-          setMoveSquares({});
-          setOptionSquares({});
-          setRightClickedSquares({});
-        }}
-      >
-        Reset
-      </button> */}
     </div>
   );
 };
