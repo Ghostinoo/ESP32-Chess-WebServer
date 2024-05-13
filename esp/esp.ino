@@ -15,7 +15,7 @@ const char* pwd = "PASSWORD";
 
 // pagina da renderizzare alla richiesta get
 // !!! è normale che venga visualizzata bianca, la tokenizzazione non funziona su stringhe lunghe. !!!
-const char* htmlPage = "<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\" /><link rel=\"icon\" type=\"image/png\" href=\"http://87.6.244.237:12432/logoPascal.png\" /><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" /><title>ESP32 Chess WebServer</title><script type=\"module\" crossorigin src=\"http://87.6.244.237:12432/index.js\"></script><link rel=\"stylesheet\" crossorigin href=\"http://87.6.244.237:12432/index.css\"></head><body><div id=\"root\"></div></body></html>";
+const char* htmlPage = "<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\" /><link rel=\"icon\" type=\"image/png\" href=\"http://IP.DEL.PROVIDER/logoPascal.png\" /><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\" /><title>ESP32 Chess WebServer</title><script type=\"module\" crossorigin src=\"http://IP.DEL.PROVIDER/index.js\"></script><link rel=\"stylesheet\" crossorigin href=\"http://IP.DEL.PROVIDER/index.css\"></head><body><div id=\"root\"></div></body></html>";
 
 // WebServer
 AsyncWebServer server(80);

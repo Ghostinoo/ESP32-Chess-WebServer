@@ -38,7 +38,7 @@ const App: React.FC = () => {
   };
 
   useEffect(() => {
-    const socket = new WebSocket('ws://192.168.1.202/ws');
+    const socket = new WebSocket('ws://IP.DELLA.ESP32/ws');
     socketRef.current = socket;
     socket.onclose = e => console.warn(`Connessione chiusa: ${e.reason}`);
     socket.onopen = () => console.warn(`Connesso a ${socket.url}`);
